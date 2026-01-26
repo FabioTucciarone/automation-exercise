@@ -14,8 +14,8 @@ jobs:
 
       - name: Install black formatter
         run: pip install black
-      # - name: Check formatting
-      #   run: black --check .
+      - name: Check formatting
+        run: black --check .
 
   test:
     runs-on: ubuntu-latest
