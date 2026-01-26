@@ -1,0 +1,72 @@
+name: SSE CI/CD
+
+on: push
+
+jobs:
+  style_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install black formatter
+        run: pip install black
+      # - name: Check formatting
+      #   run: black --check .
+
+  test:
+    runs-on: ubuntu-latest
+    needs: style_check
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install python requirements
+        run: pip install --upgrade pip matplotlib numpy pytest coverage
+
+      - name: Run tests and collect coverage
+        run: coverage run -m pytest
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-artifacts
+          path: .coverage
+          retention-days: 1
+          include-hidden-files: true
+
+  coverage_report:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install python requirements
+        run: pip install --upgrade pip coverage
+
+      - name: Download covergae artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-artifacts
+      
+      - name: Cenerate xml coverage report
+        run: |
+          coverage report
+          coverage xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage.xml
+          retention-days: 14
